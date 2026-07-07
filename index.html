@@ -24,7 +24,7 @@
 
     <nav id="side-nav" class="sidebar-nav">
         <div class="sidebar-header">
-            <span class="sidebar-logo">EnChang <span class="accent-text">Profile</span></span>
+            <span class="sidebar-logo">ANGELICA <span class="accent-text">PORTAL</span></span>
             <button class="close-nav-btn" onclick="toggleNav()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="sidebar-links">
@@ -32,7 +32,7 @@
             <li class="owner-only-link"><a href="#" onclick="switchView('update-resume-view')"><i class="fas fa-edit"></i> Update Resume / Bio</a></li>
             <li class="owner-only-link"><a href="#" onclick="switchView('profile-view')"><i class="fas fa-camera-retro"></i> Profile Picture</a></li>
             <li><a href="#" onclick="switchView('projects-view')"><i class="fas fa-layer-group"></i> My Projects</a></li>
-            <li><a href="#" onclick="switchView('contact-view')"><i class="fas fa-envelope-open-text"></i> QR Socials</a></li>
+            <li><a href="#" onclick="switchView('contact-view')"><i class="fas fa-envelope-open-text"></i> Contact & Socials</a></li>
             <!-- Dynamic Exit Button -->
             <li class="exit-link-item">
                 <a href="#" id="dynamic-exit-btn" onclick="handleExitSystem()">
@@ -46,15 +46,15 @@
     <div id="login-screen" class="login-container">
         <div class="login-card">
             <div class="login-icon"><i class="fas fa-mask"></i></div>
-            <h2>Unlock My Profile</h2>
+            <h2>Secure Portal Access</h2>
             <p class="login-subtitle">Authorization Required</p>
             
             <div id="login-error" class="error-msg" style="display: none;">Invalid credentials. Please try again.</div>
             
             <form id="gatekeeper-form" onsubmit="verifyCredentials(event)">
                 <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="Email">
+                    <label for="login-email">CHCC Email</label>
+                    <input type="email" id="login-email" placeholder="name@chcc.edu.ph">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Access Password</label>
@@ -173,6 +173,7 @@
                         </div>
 
                         <h3 class="resume-section-title" style="margin-top: 30px;"><i class="fas fa-briefcase"></i> Work Experience</h3>
+                        <!-- Container where static + dynamic work history rows will live -->
                         <div id="res-display-experience">
                             <div class="edu-node">
                                 <h4>PPT's Sctex McDonald's</h4>
@@ -295,6 +296,32 @@
                     </div>
 
                     <button type="submit" class="submit-btn" style="margin-top: 20px;">Save & Deploy Changes</button>
+                </form>
+
+                <!-- NEW WORK EXPERIENCE ADDITION FORM SUB-BLOCK -->
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 40px 0;">
+                
+                <h3 class="form-subsection-title"><i class="fas fa-briefcase"></i> Add New Work Experience</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Append historic employment roles to your resume sheet view timeline dynamically.</p>
+                
+                <form class="contact-form" onsubmit="handleWorkExperienceUpload(event)">
+                    <div class="form-group">
+                        <label>Company / Establishment Name</label>
+                        <input type="text" id="exp-company" placeholder="e.g., Jollibee Corp" required>
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Job Title / Position</label>
+                            <input type="text" id="exp-role" placeholder="e.g., Service Crew" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration / Timeline Dates</label>
+                            <input type="text" id="exp-duration" placeholder="e.g., Aug 2025 - Dec 2025" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn" style="background: linear-gradient(135deg, #00b0ff, #00e5ff); margin-top: 10px;">
+                        <i class="fas fa-plus-circle"></i> Inject Work History Node
+                    </button>
                 </form>
             </div>
         </div>
@@ -468,6 +495,7 @@
             }
             renderSavedProjects();
             loadSavedQRCodes();
+            renderWorkExperiences(); // Initialize saved custom job items
         });
 
         function verifyCredentials(event) {
@@ -600,6 +628,78 @@
                 }
                 reader.readAsDataURL(file);
             }
+        }
+
+        /* DYNAMIC WORK EXPERIENCE ENGINE */
+        function handleWorkExperienceUpload(event) {
+            event.preventDefault();
+            if (!isOwner) return;
+
+            const company = document.getElementById('exp-company').value;
+            const role = document.getElementById('exp-role').value;
+            const duration = document.getElementById('exp-duration').value;
+
+            const experienceItem = { company, role, duration };
+
+            let experienceList = JSON.parse(localStorage.getItem('angelica_experience')) || [];
+            experienceList.push(experienceItem);
+
+            localStorage.setItem('angelica_experience', JSON.stringify(experienceList));
+            renderWorkExperiences();
+
+            // Clear addition inputs
+            document.getElementById('exp-company').value = '';
+            document.getElementById('exp-role').value = '';
+            document.getElementById('exp-duration').value = '';
+
+            alert('New work history segment appended successfully!');
+            switchView('dashboard-resume-view');
+        }
+
+        function renderWorkExperiences() {
+            const expTarget = document.getElementById('res-display-experience');
+            const dynamicList = JSON.parse(localStorage.getItem('angelica_experience')) || [];
+
+            // Base static list layout default content
+            let baseHTML = `
+                <div class="edu-node">
+                    <h4>PPT's Sctex McDonald's</h4>
+                    <p class="edu-sub">Crew member</p>
+                </div>
+                <div class="edu-node">
+                    <h4>Mossy Adobes Apartment</h4>
+                    <p class="edu-sub">Cleaner, Care Taker, Rent Collector, Depositor</p>
+                    <p class="edu-meta">June 2024 - July 2025</p>
+                </div>
+                <div class="edu-node">
+                    <h4>Walter Mart LIL PEOPLE</h4>
+                    <p class="edu-sub">Assistant/Child Assist, Cashier</p>
+                    <p class="edu-meta">Part time 2024 (1 month)</p>
+                </div>
+                <div class="edu-node">
+                    <h4>CALLE Resto Classic</h4>
+                    <p class="edu-sub">Waitress, Cook, Dishwasher, Cashier</p>
+                    <p class="edu-meta">06/2023 - 2024</p>
+                </div>
+                <div class="edu-node">
+                    <h4>ANLM Grocery Store</h4>
+                    <p class="edu-sub">Cashier</p>
+                    <p class="edu-meta">June 2022 - 2023</p>
+                </div>
+            `;
+
+            // Append each newly introduced node on top of base structure
+            dynamicList.forEach(item => {
+                baseHTML += `
+                    <div class="edu-node">
+                        <h4>${item.company}</h4>
+                        <p class="edu-sub">${item.role}</p>
+                        ${item.duration ? `<p class="edu-meta">${item.duration}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            expTarget.innerHTML = baseHTML;
         }
 
         /* DYNAMIC PROJECT ENGINE HOOKS */
